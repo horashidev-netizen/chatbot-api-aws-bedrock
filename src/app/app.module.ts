@@ -6,6 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'src/domains/users/users.module';
 import { User } from 'src/domains/users/entities/user.entity';
 import configuration from 'src/core/config/configuration';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from 'src/core/auth/guard/jwt.guard';
+import { AuthModule } from 'src/core/auth/auth.module';
+import { ChatbotModule } from 'src/domains/chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -24,9 +28,17 @@ import configuration from 'src/core/config/configuration';
       }),
     }),
 
-    UsersModule
+    UsersModule,
+    AuthModule,
+    ChatbotModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+    provide: APP_GUARD,
+    useClass: JwtAuthGuard,
+  },
+  ],
 })
 export class AppModule { }
