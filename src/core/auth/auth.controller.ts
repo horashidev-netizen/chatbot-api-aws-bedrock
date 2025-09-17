@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from '../decorator/customize.decorator';
+import { CreateUserDto } from 'src/domains/users/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,26 @@ export class AuthController {
     }
     return this.authService.login(validateUser);
   }
+
+  @Public()
+  @Post('register')
+  async register(@Body() signUpDto: CreateUserDto) {
+    if (!signUpDto.email || !signUpDto.password) {
+        return {
+            statusCode: 400,
+            message: 'Email and password are required'
+        }
+    }
+    const validateUser = await this.authService.validateUser(signUpDto.email, signUpDto.password);
+    if (validateUser) {
+        return {
+            statusCode: 400,
+            message: 'User already exists'
+        }
+    }
+    return this.authService.register(signUpDto);  
+  }
+  
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;

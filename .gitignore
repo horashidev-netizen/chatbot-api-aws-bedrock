@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# Ignore compiled JS files in src (keep only in dist)
+src/**/*.js
+src/**/*.js.map
+
 # Logs
 logs
 *.log

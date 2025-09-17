@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Inject, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from 'src/domains/users/users.module';
 import { User } from 'src/domains/users/entities/user.entity';
 import configuration from 'src/core/config/configuration';
@@ -10,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from 'src/core/auth/guard/jwt.guard';
 import { AuthModule } from 'src/core/auth/auth.module';
 import { ChatbotModule } from 'src/domains/chatbot/chatbot.module';
+import { UuidMiddleware } from 'src/core/middleware/uuid.middleware';
 
 @Module({
   imports: [
@@ -27,6 +29,13 @@ import { ChatbotModule } from 'src/domains/chatbot/chatbot.module';
         synchronize: true,
       }),
     }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+    }),
+
 
     UsersModule,
     AuthModule,
@@ -41,4 +50,10 @@ import { ChatbotModule } from 'src/domains/chatbot/chatbot.module';
   },
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(UuidMiddleware)
+      .forRoutes('*'); // Áp dụng cho tất cả các routes
+  }
+ }
